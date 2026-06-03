@@ -25,9 +25,16 @@ h1 { font-size:22px; margin:0 0 6px; }
 .colorbox { display:inline-block; width:12px; height:12px; margin-right:6px; }
 .warn { background:#fff3cd; border:1px solid #ffe08a; border-radius:8px; padding:8px; font-size:13px; margin:10px 0; }
 @media (max-width: 800px) {
-  #app { grid-template-columns: 1fr; grid-template-rows: 48vh 52vh; }
-  #sidebar { grid-row:2; border-right:0; border-top:1px solid #ddd; }
-  #map { grid-row:1; height:48vh; }
+  #app { grid-template-columns: 1fr; grid-template-rows: 42vh 58vh; }
+  #sidebar { grid-row:2; border-right:0; border-top:1px solid #ddd; padding:14px; }
+  #map { grid-row:1; height:42vh; }
+  .leaflet-control-layers-expanded {
+    max-height: 32vh;
+    overflow-y: auto;
+    font-size: 14px;
+  }
+  .day { padding:11px; margin:10px 0; }
+  h1 { font-size:21px; }
 }
 </style>
 </head>
@@ -90,7 +97,10 @@ DATA.forEach(day => {
   }
 });
 
-L.control.layers(null, overlays, {collapsed:false}).addTo(map);
+
+const isMobile = window.matchMedia('(max-width: 800px)').matches;
+L.control.layers(null, overlays, {collapsed:isMobile}).addTo(map);
+
 
 const daysDiv = document.getElementById('days');
 DATA.forEach(day => {
