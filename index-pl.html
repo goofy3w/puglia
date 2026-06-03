@@ -32,6 +32,26 @@ h1 { font-size:22px; margin:0 0 6px; }
     max-height: 32vh;
     overflow-y: auto;
     font-size: 14px;
+    padding-top: 34px;
+    position: relative;
+  }
+  .mobile-layer-close {
+    display: block;
+    position: sticky;
+    top: 0;
+    float: right;
+    margin-top: -28px;
+    margin-right: -2px;
+    border: 0;
+    border-radius: 16px;
+    background: #333;
+    color: #fff;
+    font-weight: bold;
+    width: 28px;
+    height: 28px;
+    line-height: 24px;
+    font-size: 18px;
+    z-index: 9999;
   }
   .day { padding:11px; margin:10px 0; }
   h1 { font-size:21px; }
@@ -99,7 +119,46 @@ DATA.forEach(day => {
 
 
 const isMobile = window.matchMedia('(max-width: 800px)').matches;
-L.control.layers(null, overlays, {collapsed:isMobile}).addTo(map);
+const layerControl = L.control.layers(null, overlays, {collapsed:isMobile}).addTo(map);
+
+function collapseLayerMenu() {
+  if (!isMobile) return;
+  const control = document.querySelector('.leaflet-control-layers');
+  if (control && control.classList.contains('leaflet-control-layers-expanded')) {
+    control.classList.remove('leaflet-control-layers-expanded');
+  }
+}
+
+function addLayerCloseButton() {
+  if (!isMobile) return;
+  const expanded = document.querySelector('.leaflet-control-layers-expanded');
+  if (!expanded || expanded.querySelector('.mobile-layer-close')) return;
+  const btn = document.createElement('button');
+  btn.className = 'mobile-layer-close';
+  btn.type = 'button';
+  btn.innerHTML = '×';
+  btn.setAttribute('aria-label', 'Zamknij menu warstw');
+  btn.onclick = function(e) {
+    e.preventDefault();
+    e.stopPropagation();
+    collapseLayerMenu();
+  };
+  expanded.insertBefore(btn, expanded.firstChild);
+}
+
+if (isMobile) {
+  document.addEventListener('click', function() {
+    setTimeout(addLayerCloseButton, 0);
+  }, true);
+
+  map.on('click movestart zoomstart', collapseLayerMenu);
+
+  const sidebar = document.getElementById('sidebar');
+  if (sidebar) {
+    sidebar.addEventListener('scroll', collapseLayerMenu, {passive:true});
+    sidebar.addEventListener('touchmove', collapseLayerMenu, {passive:true});
+  }
+}
 
 
 const daysDiv = document.getElementById('days');
