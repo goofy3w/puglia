@@ -25,9 +25,28 @@ h1 { font-size:22px; margin:0 0 6px; }
 .colorbox { display:inline-block; width:12px; height:12px; margin-right:6px; }
 .warn { background:#fff3cd; border:1px solid #ffe08a; border-radius:8px; padding:8px; font-size:13px; margin:10px 0; }
 @media (max-width: 800px) {
-  #app { grid-template-columns: 1fr; grid-template-rows: 48vh 52vh; }
-  #sidebar { grid-row:2; border-right:0; border-top:1px solid #ddd; }
-  #map { grid-row:1; height:48vh; }
+  #app { grid-template-columns: 1fr; grid-template-rows: 42vh 58vh; }
+  #sidebar { grid-row:2; border-right:0; border-top:1px solid #ddd; padding:14px; }
+  #map { grid-row:1; height:42vh; }
+  .leaflet-control-layers-expanded {
+    max-height: 32vh;
+    overflow-y: auto;
+    padding-top: 34px;
+    position: relative;
+  }
+  .mobile-layer-close {
+    display:block;
+    position:sticky;
+    top:0;
+    float:right;
+    border:0;
+    border-radius:16px;
+    background:#333;
+    color:#fff;
+    width:28px;
+    height:28px;
+    font-size:18px;
+  }
 }
 </style>
 </head>
@@ -90,7 +109,46 @@ DATA.forEach(day => {
   }
 });
 
-L.control.layers(null, overlays, {collapsed:false}).addTo(map);
+
+const isMobile = window.matchMedia('(max-width: 800px)').matches;
+const layerControl = L.control.layers(null, overlays, {collapsed:isMobile}).addTo(map);
+
+function collapseLayerMenu() {
+  if (!isMobile) return;
+  const control = document.querySelector('.leaflet-control-layers');
+  if (control && control.classList.contains('leaflet-control-layers-expanded')) {
+    control.classList.remove('leaflet-control-layers-expanded');
+  }
+}
+
+function addLayerCloseButton() {
+  if (!isMobile) return;
+  const expanded = document.querySelector('.leaflet-control-layers-expanded');
+  if (!expanded || expanded.querySelector('.mobile-layer-close')) return;
+  const btn = document.createElement('button');
+  btn.className = 'mobile-layer-close';
+  btn.type = 'button';
+  btn.innerHTML = '×';
+  btn.onclick = function(e) {
+    e.preventDefault();
+    e.stopPropagation();
+    collapseLayerMenu();
+  };
+  expanded.insertBefore(btn, expanded.firstChild);
+}
+
+document.addEventListener('click', function() {
+  setTimeout(addLayerCloseButton, 0);
+}, true);
+
+map.on('click movestart zoomstart', collapseLayerMenu);
+
+const sidebar = document.getElementById('sidebar');
+if (sidebar) {
+  sidebar.addEventListener('scroll', collapseLayerMenu, {passive:true});
+  sidebar.addEventListener('touchmove', collapseLayerMenu, {passive:true});
+}
+
 
 const daysDiv = document.getElementById('days');
 DATA.forEach(day => {
