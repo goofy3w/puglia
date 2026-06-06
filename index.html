@@ -134,32 +134,49 @@ function collapseLayerMenu() {
 
 function addLayerCloseButton() {
   if (!isMobile) return;
-  const expanded = document.querySelector('.leaflet-control-layers-expanded');
-  if (!expanded || expanded.querySelector('.mobile-layer-close')) return;
+  const control = document.querySelector('.leaflet-control-layers');
+  if (!control || !control.classList.contains('leaflet-control-layers-expanded')) return;
+  if (control.querySelector('.mobile-layer-close')) return;
+
   const btn = document.createElement('button');
   btn.className = 'mobile-layer-close';
   btn.type = 'button';
   btn.innerHTML = '×';
+  btn.setAttribute('aria-label', 'Close layer menu');
   btn.onclick = function(e) {
     e.preventDefault();
     e.stopPropagation();
     collapseLayerMenu();
   };
-  expanded.insertBefore(btn, expanded.firstChild);
+  control.insertBefore(btn, control.firstChild);
 }
 
-document.addEventListener('click', function() {
-  setTimeout(addLayerCloseButton, 0);
-}, true);
+if (isMobile) {
+  const control = document.querySelector('.leaflet-control-layers');
 
-map.on('click movestart zoomstart', collapseLayerMenu);
+  if (control) {
+    const observer = new MutationObserver(function() {
+      addLayerCloseButton();
+    });
+    observer.observe(control, {
+      attributes: true,
+      attributeFilter: ['class'],
+      childList: true
+    });
 
-const sidebar = document.getElementById('sidebar');
-if (sidebar) {
-  sidebar.addEventListener('scroll', collapseLayerMenu, {passive:true});
-  sidebar.addEventListener('touchmove', collapseLayerMenu, {passive:true});
+    control.addEventListener('click', function() {
+      setTimeout(addLayerCloseButton, 0);
+    }, true);
+  }
+
+  map.on('click movestart zoomstart', collapseLayerMenu);
+
+  const sidebar = document.getElementById('sidebar');
+  if (sidebar) {
+    sidebar.addEventListener('scroll', collapseLayerMenu, {passive:true});
+    sidebar.addEventListener('touchmove', collapseLayerMenu, {passive:true});
+  }
 }
-
 
 const daysDiv = document.getElementById('days');
 DATA.forEach(day => {
